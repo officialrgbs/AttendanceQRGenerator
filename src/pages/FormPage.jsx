@@ -103,6 +103,9 @@ function FormPage() {
             name="lrn"
             placeholder="LRN"
             required
+            type="number"
+            maxlength="12"
+            inputmode="numeric"
             value={formData.lrn}
             onChange={handleChange}
             disabled={loading}
