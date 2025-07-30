@@ -103,8 +103,8 @@ function FormPage() {
             name="lrn"
             placeholder="LRN"
             required
-            type="number"
-            maxlength="12"
+            type="text"
+            maxLength="12"
             inputmode="numeric"
             pattern="\d*"
             value={formData.lrn}
@@ -135,7 +135,7 @@ function FormPage() {
           />
           <input
             name="parentNumber"
-            type="number"
+            type="text"
             placeholder="Parent / Guardian's Contact Number"
             required
             maxlength="11"
