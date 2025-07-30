@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "../firebase"
 import { serverTimestamp } from "firebase/firestore";
-import { useForm } from "react-hook-form";
 
 function FormPage() {
   const [formData, setFormData] = useState({
@@ -48,6 +47,8 @@ function FormPage() {
       const digitsOnly = value.replace(/\D/g, '');
       const limitedValue = digitsOnly.slice(0, 11);
       setFormData({...formData, [name]: limitedValue});
+    } else if(name === "grade") {
+      setFormData({...formData, [name]: value, section: ''})
     } else {
       setFormData({...formData, [name]: value})
     }
@@ -91,6 +92,11 @@ function FormPage() {
     }
   };
 
+  const isGrade7 = formData.grade === '7';
+  const isGrade8 = formData.grade === '8';
+  const isGrade9 = formData.grade === '9';
+  const isGrade10 = formData.grade === '10';
+
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
@@ -118,6 +124,8 @@ function FormPage() {
             placeholder="LRN"
             required
             type="text"
+            minLength="12"
+            maxLength="12"
             inputmode="numeric"
             value={formData.lrn}
             onChange={handleChange}
@@ -136,7 +144,64 @@ function FormPage() {
             disabled={loading}
             className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none transition-all"
           />
-          <input
+          {isGrade9 ? (
+            <select
+              name="section"
+              required
+              value={formData.section}
+              onChange={handleChange}
+              disabled={loading}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none transition-all bg-white"
+              >
+                <option value="" disabled>Select Section</option>
+                <option value="Alfredo C. Santos">Alfredo C. Santos</option>
+                <option value="Julian A. Banzon">Julian A. Banzon</option>
+                <option value="Anacleto Del Rosario">Anacleto Del Rosario</option>
+              </select>
+          ): isGrade10 ? (
+            <select
+              name="section"
+              required
+              value={formData.section}
+              onChange={handleChange}
+              disabled={loading}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none transition-all bg-white"
+              >
+                <option value="" disabled>Select Section</option>
+                <option value="Gregorio Y. Zara">Gregorio Y. Zara</option>
+                <option value="Francisco Quisumbing">Francisco Quisumbing</option>
+              </select>
+          ) : isGrade8 ? (
+            <select
+              name="section"
+              required
+              value={formData.section}
+              onChange={handleChange}
+              disabled={loading}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none transition-all bg-white"
+              >
+                <option value="" disabled>Select Section</option>
+                <option value="Fe Del Mundo">Fe Del Mundo</option>
+                <option value="Pedro Escuro">Pedro Escuro</option>
+                <option value="Angel Alcala">Angel Alcala</option>
+              </select>
+          ) : isGrade7 ? (
+            <select
+              name="section"
+              required
+              value={formData.section}
+              onChange={handleChange}
+              disabled={loading}
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none transition-all bg-white"
+              >
+                <option value="" disabled>Select Section</option>
+                <option value="Eduardo San Juan">Eduardo San Juan</option>
+                <option value="Casimiro Del Rosario">Casimiro Del Rosario</option>
+                <option value="Josette Biyo">Josette Biyo</option>
+                <option value="Arturo Alcaraz">Arturo Alcaraz</option>
+              </select>
+          ) : (
+            <input
             name="section"
             placeholder="Section"
             required
@@ -145,11 +210,14 @@ function FormPage() {
             disabled={loading}
             className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none transition-all"
           />
+          )}
           <input
             name="parentNumber"
             type="text"
             placeholder="Parent / Guardian's Contact Number"
             required
+            minLength="11"
+            maxLength="11"
             inputmode="numeric"
             value={formData.parentNumber}
             onChange={handleChange}
