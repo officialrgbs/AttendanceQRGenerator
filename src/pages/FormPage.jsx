@@ -18,6 +18,13 @@ function FormPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      parentNumber: prev.parentNumber || "+63",
+    }))
+  }, [])
+
+  useEffect(() => {
     const checkExistingProfile = async () => {
       const savedLRN = localStorage.getItem("userLRN");
       if (savedLRN) {
@@ -36,6 +43,24 @@ function FormPage() {
     checkExistingProfile()
   }, [navigate]);
 
+  useEffect(() => {
+    const input = document.querySelector("input[name='parentNumber']");
+    const handler = (e) => {
+      if (input.selectionStart < 3) {
+        e.preventDefault();
+        input.setSelectionRange(3, 3);
+      }
+    };
+    if (input) {
+      input.addEventListener("keydown", handler);
+    }
+    return () => {
+      if (input) {
+        input.removeEventListener("keydown", handler);
+      }
+    }
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -43,13 +68,21 @@ function FormPage() {
       const digitsOnly = value.replace(/\D/g, '');
       const limitedValue = digitsOnly.slice(0, 12);
       setFormData({...formData, [name]: limitedValue});
-    } else if(name === "parentNumber") {
-      const digitsOnly = value.replace(/\D/g, '');
-      const limitedValue = digitsOnly.slice(0, 11);
-      setFormData({...formData, [name]: limitedValue});
     } else if(name === "grade") {
       setFormData({...formData, [name]: value, section: ''})
-    } else {
+    } else if(name === "parentNumber") {
+      let input = value;
+
+      if(!input.startsWith("+63")) {
+        input = "+63" + input.replace(/\D/g, "");
+      }
+
+      const digits = input.slice(3).replace(/\D/g, "").slice(0, 10);
+      const finalValue = "+63" + digits;
+
+      setFormData({...formData, parentNumber: finalValue});
+    } 
+    else {
       setFormData({...formData, [name]: value})
     }
 
@@ -126,7 +159,7 @@ function FormPage() {
             type="text"
             minLength="12"
             maxLength="12"
-            inputmode="numeric"
+            inputMode="numeric"
             value={formData.lrn}
             onChange={handleChange}
             disabled={loading}
@@ -213,12 +246,13 @@ function FormPage() {
           )}
           <input
             name="parentNumber"
-            type="text"
+            type="tel"
             placeholder="Parent / Guardian's Contact Number"
             required
+            pattern="\+63\d{10}"
             minLength="11"
-            maxLength="11"
-            inputmode="numeric"
+            maxLength={13}
+            inputMode="numeric"
             value={formData.parentNumber}
             onChange={handleChange}
             disabled={loading}
