@@ -106,6 +106,7 @@ function FormPage() {
             type="number"
             maxlength="12"
             inputmode="numeric"
+            pattern="\d*"
             value={formData.lrn}
             onChange={handleChange}
             disabled={loading}
@@ -137,6 +138,8 @@ function FormPage() {
             type="number"
             placeholder="Parent / Guardian's Contact Number"
             required
+            maxlength="11"
+            inputmode="numeric"
             value={formData.parentNumber}
             onChange={handleChange}
             disabled={loading}
