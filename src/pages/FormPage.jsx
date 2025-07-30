@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "../firebase"
 import { serverTimestamp } from "firebase/firestore";
+import { useForm } from "react-hook-form";
 
 function FormPage() {
   const [formData, setFormData] = useState({
@@ -37,8 +38,21 @@ function FormPage() {
   }, [navigate]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    setError('')
+    const { name, value } = e.target;
+
+    if (name === "lrn") {
+      const digitsOnly = value.replace(/\D/g, '');
+      const limitedValue = digitsOnly.slice(0, 12);
+      setFormData({...formData, [name]: limitedValue});
+    } else if(name === "parentNumber") {
+      const digitsOnly = value.replace(/\D/g, '');
+      const limitedValue = digitsOnly.slice(0, 11);
+      setFormData({...formData, [name]: limitedValue});
+    } else {
+      setFormData({...formData, [name]: value})
+    }
+
+    setError('');
   };
 
   const handleSubmit = async (e) => {
@@ -104,9 +118,7 @@ function FormPage() {
             placeholder="LRN"
             required
             type="text"
-            maxLength="12"
             inputmode="numeric"
-            pattern="\d*"
             value={formData.lrn}
             onChange={handleChange}
             disabled={loading}
@@ -138,7 +150,6 @@ function FormPage() {
             type="text"
             placeholder="Parent / Guardian's Contact Number"
             required
-            maxlength="11"
             inputmode="numeric"
             value={formData.parentNumber}
             onChange={handleChange}
