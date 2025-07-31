@@ -2,7 +2,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
 import { useRef, useEffect, useState } from "react";
 import { doc, getDoc, deleteDoc } from "firebase/firestore"
-import { db } from "../firebase"; 
+import { db, auth } from "../firebase"; 
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 function ProfilePage() {
   const { state } = useLocation();
@@ -13,33 +14,31 @@ function ProfilePage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const loadStudentData = async () => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        navigate("/auth");
+        return;
+      }
+
       try {
-        const savedLRN = localStorage.getItem("userLRN")
-        if (savedLRN) {
-          const docRef = doc(db, "students", savedLRN);
-          const docSnap = await getDoc(docRef);
+        const docRef = doc(db, "students", user.uid);
+        const docSnap = await getDoc(docRef);
 
-          if (docSnap.exists()) {
-            setStudentData(docSnap.data())
-          } else {
-            setError("Student profile not found.");
-
-            localStorage.removeItem("userLRN");
-            localStorage.removeItem("createdProfile");
-          }
+        if (docSnap.exists()) {
+          setStudentData(docSnap.data());
         } else {
-          setError("No student data found.")
+          setError("Student profile not found")
         }
       } catch (err) {
         console.error("Error loading student data: ", err);
+        setError("Failed to load profile. Please try again.")
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    }
+    })
 
-    loadStudentData();
-  }, [state]);
+    return () => unsubscribe();
+  }, [navigate]);
 
 
   if (loading) {
@@ -94,32 +93,25 @@ function ProfilePage() {
   };
 
   const handleDeleteProfile = async () => {
-    const confirmed = window.confirm(
-      "Are you sure you want todelete this profile? This action cannot be undone."
-    )
+    const confirmed = window.confirm("Are you sure you want to delete this profile?")
 
-    if (confirmed) {
+    if (confirmed && auth.currentUser) {
       try {
         setLoading(true);
-
-        const docRef = doc(db, "students", studentData.lrn);
-        await deleteDoc(docRef);
-
-        localStorage.removeItem("userLRN");
-        localStorage.removeItem("createdProfile");
-
-        navigate("/", { replace: true })
+        const uid = auth.currentUser.uid;
+        await deleteDoc(doc(db, "students", uid));
+        await signOut(auth);
+        navigate("/", {replace:true});
       } catch (err) {
-        console.error("error deleting profile: ", err);
-        setError("Failed to delete profile. Please try again.")
-        setLoading(false);
+        console.error("Error deleting profile: ", err);
+        setError("Failed to delete profile")
+        setLoading(false)
       }
     }
   }
 
-  const handleBackToForm = () => {
-    localStorage.removeItem("userLRN")
-    localStorage.removeItem("createdProfile");
+  const handleBackToForm = async () => {
+    await signOut(auth);
     navigate("/", { replace: true })
   }
 

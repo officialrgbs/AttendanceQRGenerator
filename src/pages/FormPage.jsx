@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useBeforeUnload, useNavigate } from "react-router-dom";
 import { doc, setDoc, getDoc } from "firebase/firestore";
-import { db } from "../firebase"
+import { auth, db } from "../firebase"
 import { serverTimestamp } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
 
 function FormPage() {
   const [formData, setFormData] = useState({
@@ -16,6 +17,29 @@ function FormPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('')
   const navigate = useNavigate();
+  const [uid, setUid] = useState(null);  
+
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setUid(user.uid);
+
+        const profileRef = doc(db, "students", user.uid);
+        const profileSnap = await getDoc(profileRef);
+
+        if (profileSnap.exists()) {
+          navigate("/profile");
+        } else {
+          setLoading(false);
+        }
+      } else {
+        navigate("/signup")
+      }
+    })
+
+    return () => unsubscribe();
+  }, [navigate]);
 
   useEffect(() => {
     setFormData((prev) => ({
@@ -23,25 +47,6 @@ function FormPage() {
       parentNumber: prev.parentNumber || "+63",
     }))
   }, [])
-
-  useEffect(() => {
-    const checkExistingProfile = async () => {
-      const savedLRN = localStorage.getItem("userLRN");
-      if (savedLRN) {
-        try {
-          const docRef = doc(db, "students", savedLRN);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            navigate("/profile");
-          }
-        } catch (error) {
-          console.error("error checking existing profile ", error)
-        }
-      }
-    }
-
-    checkExistingProfile()
-  }, [navigate]);
 
   useEffect(() => {
     const input = document.querySelector("input[name='parentNumber']");
@@ -95,7 +100,7 @@ function FormPage() {
     setError('');
 
     try {
-      const docRef = doc(db, "students", formData.lrn)
+      const docRef = doc(db, "students", uid);
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
@@ -112,10 +117,6 @@ function FormPage() {
         parentNumber: formData.parentNumber,
         createdAt: serverTimestamp(),
       })
-
-      localStorage.setItem("userLRN", formData.lrn);
-      localStorage.setItem("createdProfile", "true");
-
       navigate("/profile", { state: formData });
     } catch (error) {
       console.error("Error creating student profile: ", error);
