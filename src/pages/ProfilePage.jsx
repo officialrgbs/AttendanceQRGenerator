@@ -74,11 +74,12 @@ function ProfilePage() {
 
 
   const qrData = JSON.stringify({
+    uid: auth.currentUser?.uid,
     name: studentData.name,
     lrn: studentData.lrn,
     grade: studentData.grade,
     section: studentData.section,
-    parentNumber: studentData.parentNumber
+    parentNumber: studentData.parentNumber,
   });
 
   const handleDownload = () => {
